@@ -1,4 +1,5 @@
 from flask_talisman import Talisman
+from flask_cors import CORS
 """
 Package: service
 Package for the application models and service routes
@@ -14,6 +15,7 @@ from service.common import log_handlers
 app = Flask(__name__)
 
 talisman = Talisman(app)
+CORS(app)
 app.config.from_object(config)
 
 # Import the routes After the Flask app is created
