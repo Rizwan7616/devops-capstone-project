@@ -124,3 +124,43 @@ class TestAccountService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     # ADD YOUR TEST CASES HERE ...
+    def test_get_account(self):
+        """It should Read a single Account"""
+        account = self._create_accounts(1)[0]
+        resp = self.client.get(
+            f"{BASE_URL}/{account.id}", content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["name"], account.name)
+    def test_get_account_not_found(self):
+        """It should not Read an Account that is not found"""
+        resp = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_all_accounts(self):
+        """It should List all Accounts"""
+        accounts = self._create_accounts(3)
+
+        resp = self.client.get(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        self.assertEqual(len(data), 3)
+
+        self.assertEqual(data[0]["name"], accounts[0].name)
+        self.assertEqual(data[1]["name"], accounts[1].name)
+        self.assertEqual(data[2]["name"], accounts[2].name)
+
+    def test_security_headers(self):
+        """It should return security headers"""
+        response = self.client.get('/', environ_overrides=HTTPS_ENVIRON)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        headers = {
+            'X-Frame-Options': 'SAMEORIGIN',
+            'X-Content-Type-Options': 'nosniff',
+            'Content-Security-Policy': 'default-src \'self\'; object-src \'none\'',
+            'Referrer-Policy': 'strict-origin-when-cross-origin'
+        }
+        for key, value in headers.items():
+            self.assertEqual(response.headers.get(key), value)
